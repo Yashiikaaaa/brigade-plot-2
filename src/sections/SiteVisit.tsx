@@ -1,24 +1,28 @@
 import { useState } from "react";
-import siteImg from "../assets/site-visit.svg"; // Update to your actual image path
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+import siteImg from "../assets/site-visit.svg";
+import { FormAlert } from "../components/FormAlert";
 
 const SiteVisitForm = () => {
   const [name, setName] = useState("");
-  const [mobile, setMobile] = useState("");
-  const [errors, setErrors] = useState({ name: "", mobile: "" });
+  const [contactNumber, setContactNumber] = useState("");
+  const [errors, setErrors] = useState({ name: "", contact: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState("");
 
   const validateForm = () => {
     let valid = true;
-    const newErrors = { name: "", mobile: "" };
+    const newErrors = { name: "", contact: "" };
 
-    // Name validation
     if (!name.trim()) {
       newErrors.name = "Name is required.";
       valid = false;
     }
 
-    // Mobile number validation
-    if (!/^\d{10}$/.test(mobile)) {
-      newErrors.mobile = "Mobile number must be 10 digits.";
+    const digits = contactNumber.replace(/\D/g, "");
+    if (digits.length < 10 || digits.length > 15) {
+      newErrors.contact = "Please enter a valid phone number.";
       valid = false;
     }
 
@@ -26,37 +30,60 @@ const SiteVisitForm = () => {
     return valid;
   };
 
-  const handleSubmit = () => {
-    if (validateForm()) {
-      alert("Form submitted successfully!");
-      // Perform actual form submission logic here
+  const handleSubmit = async () => {
+    if (!validateForm() || isSubmitting) return;
+
+    const payload = {
+      name: name.trim().toLowerCase(),
+      phonenumber: contactNumber,
+      campaign: true,
+      projectId: "vDJtBNSMTbRpndgM4GRf",
+      projectName: "assetz codename micropolis",
+      currentAgent: "yasswanth@truestate.in",
+      utmDetails: {
+        source: null,
+        medium: null,
+        campaign: null,
+      },
+    };
+
+    try {
+      setIsSubmitting(true);
+      const response = await fetch("https://handlemultiplecampaigndata-66bpoanwxq-uc.a.run.app", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) throw new Error("Submission failed");
+
+      const result = await response.json();
+      console.log("Submitted:", result);
+      setName("");
+      setContactNumber("");
+      setSubmissionStatus("We received your info. Expect a response soon!");
+    } catch (err) {
+      console.error(err);
+      setSubmissionStatus("Something went wrong. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="relative mt-6 md:mt-25 w-full md:flex md:items-center md:justify-center">
-      {/* Green background bar */}
       <div className="absolute -top-3 md:-mt-20 left-0 w-full h-20 md:h-50 bg-[#26650B] z-0" />
 
-      {/* Content Wrapper */}
       <div className="relative z-10 flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden p-4 mx-4 md:p-0 md:pb-14">
-        {/* Image Section for Mobile */}
         <div className="block md:hidden">
-          <img
-            src={siteImg}
-            alt="Site Visit"
-            className="w-full h-auto object-cover"
-          />
+          <img src={siteImg} alt="Site Visit" className="w-full h-auto object-cover" />
         </div>
 
-        {/* Form Section */}
         <div className="p-6 px-10 md:w-1/2">
-          {/* Title */}
           <h2 className="text-xl md:text-2xl font-semibold text-[#1A1A1A] mb-8">
             Schedule a Site Visit
           </h2>
 
-          {/* Form */}
           <div className="space-y-3 mb-4">
             <div>
               <input
@@ -64,46 +91,39 @@ const SiteVisitForm = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Name"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-black placeholder:text-gray-700"
+                className={`w-full px-4 py-2 border text-sm rounded-md focus:outline-none focus:ring-1 placeholder:text-gray-700 ${
+                  errors.name ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-black"
+                }`}
               />
-              {errors.name && (
-                <p className="text-xs text-red-500 mt-1">{errors.name}</p>
-              )}
+              {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
             </div>
 
-            <div className="flex items-center border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black overflow-hidden mt-3">
-  <span className="px-3 text-sm text-gray-700 border-r border-gray-300">
-    +91
-  </span>
-  <input
-    type="tel"
-    value={mobile}
-    onChange={(e) => {
-      const value = e.target.value;
-      // Allow only digits and limit to 10 characters
-      if (/^\d{0,10}$/.test(value)) {
-        setMobile(value);
-      }
-    }}
-    maxLength={10}
-    placeholder="Mobile No"
-    className="w-full px-3 py-2 text-sm focus:outline-none placeholder:text-gray-800"
-  />
-</div>
-
+            <div>
+              <PhoneInput
+                international
+                defaultCountry="IN"
+                value={contactNumber}
+                onChange={(value) => setContactNumber(value || "")}
+                className={`w-full px-4 py-2 text-base input-phone-number border rounded-md ${
+                  errors.contact ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.contact && <p className="text-xs text-red-500 mt-1">{errors.contact}</p>}
+            </div>
           </div>
 
-          {/* Button */}
           <div className="mb-4">
             <button
               onClick={handleSubmit}
-              className="w-full md:w-auto md:px-20 bg-[#26650B] text-white py-2 rounded-md text-sm shadow cursor-pointer"
+              disabled={isSubmitting}
+              className={`w-full md:w-auto md:px-20 bg-[#26650B] text-white py-2 rounded-md text-sm shadow cursor-pointer ${
+                isSubmitting ? "opacity-60 cursor-not-allowed" : "hover:scale-105 transition-transform duration-200"
+              }`}
             >
-              Pre-Register Now
+              {isSubmitting ? "Submitting..." : "Pre-Register Now"}
             </button>
           </div>
 
-          {/* Consent Text */}
           <p className="text-[11px] text-gray-600 leading-snug">
             I authorize company representatives to Call, SMS, Email or WhatsApp
             me about its products and offers. This consent overrides any
@@ -111,15 +131,14 @@ const SiteVisitForm = () => {
           </p>
         </div>
 
-        {/* Image Section for Desktop */}
         <div className="hidden md:block md:w-1/2">
-          <img
-            src={siteImg}
-            alt="Site Visit"
-            className="w-full h-full object-cover"
-          />
+          <img src={siteImg} alt="Site Visit" className="w-full h-full object-cover" />
         </div>
       </div>
+
+      {submissionStatus && (
+        <FormAlert message={submissionStatus} onClose={() => setSubmissionStatus("")} />
+      )}
     </div>
   );
 };
