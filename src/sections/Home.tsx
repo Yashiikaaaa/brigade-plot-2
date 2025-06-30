@@ -56,17 +56,16 @@ const HomeInfo = ({ openModal }: HomeProps) => {
           </div>
 
           <a href="tel:+918919456501" className="block">
-  <div className="bg-[#26650B] text-white font-medium text-[15px] mb-2 p-1.5">
-    <div className="border-2 border-dashed border-white px-3 py-2.5 rounded">
-      +91-8919456501
-    </div>
-  </div>
-</a>
-
+            <div className="bg-[#26650B] text-white font-medium text-[15px] mb-2 p-1.5">
+              <div className="border-2 border-dashed border-white px-3 py-2.5 rounded">
+                +91-8919456501
+              </div>
+            </div>
+          </a>
         </div>
 
         <div className="bg-gray-100 rounded-lg pl-6 py-4 mb-4 text-sm text-black">
-          <div className="flex justify-center gap-x-9">
+          <div className="flex justify-center gap-x-4 md:gap-x-9 ">
             {/* Left Column: Labels */}
             <div className="flex flex-col text-left">
               <span className="text-base">Area:</span>
@@ -78,7 +77,7 @@ const HomeInfo = ({ openModal }: HomeProps) => {
             <div className="flex flex-col text-left">
               <span className="text-base">20 Acres (Phase 1)</span>
               <span className="text-base">300+</span>
-              <span className="text-base">G+23 G+24</span>
+              <span className="text-base">1200, 1500, 2040 sq.ft</span>
             </div>
           </div>
         </div>

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import callIcon from "../assets/icons/call-icon.svg";
-import visitIcon from "../assets/icons/visit-icon.svg";
 import priceIcon from "../assets/icons/price-icon.svg";
 import phoneIcon from "../assets/icons/phone-icon.svg";
 import { FormAlert } from "./FormAlert";
@@ -222,19 +221,12 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
             registration for DNC/NDNC.
           </p>
 
-          <div className="flex justify-between items-start pt-3 text-xs text-center mt-3">
+          <div className="flex justify-center items-start pt-3 text-xs text-center mt-3">
             <div className="flex flex-col items-center w-1/3 min-h-[60px]">
               <img src={callIcon} alt="Call Back" className="w-8 h-8 mb-1" />
               <div className="leading-tight h-[32px] flex flex-col justify-start">
                 <p>Instant Call</p>
                 <p>Back</p>
-              </div>
-            </div>
-            <div className="flex flex-col items-center w-1/3 min-h-[60px]">
-              <img src={visitIcon} alt="Site Visit" className="w-8 h-8 mb-1" />
-              <div className="leading-tight h-[32px] flex flex-col justify-start">
-                <p>Free Site</p>
-                <p>Visit</p>
               </div>
             </div>
             <div className="flex flex-col items-center w-1/3 min-h-[60px]">
