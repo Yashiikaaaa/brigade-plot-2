@@ -103,8 +103,8 @@ const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, closeModal }) => {
       name: name.trim().toLowerCase(),
       phonenumber: `+91${digitsOnly}`,
       campaign: true,
-      projectId: "vDJtBNSMTbRpndgM4GRf",
-      projectName: "assetz codename micropolis",
+      projectId: "P031-A1",
+      projectName: "brigade plot malur",
       currentAgent: "yasswanth@truestate.in",
       utmDetails: {
         source: null,
