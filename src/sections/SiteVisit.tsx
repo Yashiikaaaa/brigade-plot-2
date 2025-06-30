@@ -1,8 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import siteImg from "../assets/site-visit.svg";
 import { FormAlert } from "../components/FormAlert";
+import ReactGA from "react-ga4";
+
+// Declare globals
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+  interface ImportMetaEnv {
+    readonly VITE_GA_MEASUREMENT_ID?: string;
+    [key: string]: string | boolean | undefined;
+  }
+}
+
+// Initialize Google Analytics
+const trackingId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+if (trackingId) {
+  ReactGA.initialize(trackingId);
+}
+
+// Google Ads Conversion Tracking
+const gtag_report_conversion = (url?: string) => {
+  if (typeof window.gtag !== "undefined") {
+    const callback = () => {
+      if (url) window.location.href = url;
+    };
+    window.gtag("event", "conversion", {
+      send_to: "AW-16460421460/zvkSCLj3m6caENSy-Kg9",
+      value: 1.0,
+      currency: "INR",
+      event_callback: callback,
+    });
+  }
+};
 
 const SiteVisitForm = () => {
   const [name, setName] = useState("");
@@ -10,6 +43,31 @@ const SiteVisitForm = () => {
   const [errors, setErrors] = useState({ name: "", contact: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState("");
+  const [utmParams, setUtmParams] = useState({
+    utmSource: "",
+    utmMedium: "",
+    utmCampaign: "",
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const source = params.get("utmSource");
+    const medium = params.get("utmMedium");
+    const campaign = params.get("utmCampaign");
+
+    ReactGA.send({
+      hitType: "pageview",
+      utm_source: source,
+      utm_medium: medium,
+      utm_campaign: campaign,
+    });
+
+    setUtmParams({
+      utmSource: source || "",
+      utmMedium: medium || "",
+      utmCampaign: campaign || "",
+    });
+  }, []);
 
   const validateForm = () => {
     let valid = true;
@@ -41,9 +99,9 @@ const SiteVisitForm = () => {
       projectName: "assetz codename micropolis",
       currentAgent: "yasswanth@truestate.in",
       utmDetails: {
-        source: null,
-        medium: null,
-        campaign: null,
+        source: utmParams.utmSource || null,
+        medium: utmParams.utmMedium || null,
+        campaign: utmParams.utmCampaign || null,
       },
     };
 
@@ -59,6 +117,9 @@ const SiteVisitForm = () => {
 
       const result = await response.json();
       console.log("Submitted:", result);
+
+      gtag_report_conversion();
+
       setName("");
       setContactNumber("");
       setSubmissionStatus("We received your info. Expect a response soon!");
@@ -69,6 +130,7 @@ const SiteVisitForm = () => {
       setIsSubmitting(false);
     }
   };
+
 
   return (
     <div className="relative mt-6 md:mt-25 w-full md:flex md:items-center md:justify-center">

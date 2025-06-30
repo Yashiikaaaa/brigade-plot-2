@@ -1,7 +1,40 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { FormAlert } from "../components/FormAlert";
+import ReactGA from "react-ga4";
+
+// Declare global objects for TS
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+  interface ImportMetaEnv {
+    readonly VITE_GA_MEASUREMENT_ID?: string;
+    [key: string]: string | boolean | undefined;
+  }
+}
+
+// Initialize GA4
+const trackingId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+if (trackingId) {
+  ReactGA.initialize(trackingId);
+}
+
+// Google Ads Conversion Trigger
+const gtag_report_conversion = (url?: string) => {
+  if (typeof window.gtag !== "undefined") {
+    const callback = () => {
+      if (url) window.location.href = url;
+    };
+    window.gtag("event", "conversion", {
+      send_to: "AW-16460421460/zvkSCLj3m6caENSy-Kg9",
+      value: 1.0,
+      currency: "INR",
+      event_callback: callback,
+    });
+  }
+};
 
 const MobilePreRegister = () => {
   const [name, setName] = useState("");
@@ -11,6 +44,31 @@ const MobilePreRegister = () => {
   const [submittedNumbers, setSubmittedNumbers] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState("");
+  const [utmParams, setUtmParams] = useState({
+    utmSource: "",
+    utmMedium: "",
+    utmCampaign: "",
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const source = params.get("utmSource");
+    const medium = params.get("utmMedium");
+    const campaign = params.get("utmCampaign");
+
+    ReactGA.send({
+      hitType: "pageview",
+      utm_source: source,
+      utm_medium: medium,
+      utm_campaign: campaign,
+    });
+
+    setUtmParams({
+      utmSource: source || "",
+      utmMedium: medium || "",
+      utmCampaign: campaign || "",
+    });
+  }, []);
 
   const validateName = (value: string) => {
     if (!value.trim()) {
@@ -64,9 +122,9 @@ const MobilePreRegister = () => {
       projectName: "assetz codename micropolis",
       currentAgent: "yasswanth@truestate.in",
       utmDetails: {
-        source: null,
-        medium: null,
-        campaign: null,
+        source: utmParams.utmSource || null,
+        medium: utmParams.utmMedium || null,
+        campaign: utmParams.utmCampaign || null,
       },
     };
 
@@ -84,6 +142,8 @@ const MobilePreRegister = () => {
       const result = await response.json();
       console.log("Success:", result);
 
+      gtag_report_conversion();
+
       setSubmittedNumbers((prev) => new Set(prev.add(contactNumber)));
       setSubmissionStatus("We received your info. Expect a response soon!");
 
@@ -96,6 +156,7 @@ const MobilePreRegister = () => {
       setIsSubmitting(false);
     }
   };
+
 
   return (
     <div className="block lg:hidden py-6 bg-white rounded-lg mt-1">

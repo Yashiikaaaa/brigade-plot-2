@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import callIcon from "../assets/icons/call-icon.svg";
@@ -6,6 +6,39 @@ import visitIcon from "../assets/icons/visit-icon.svg";
 import priceIcon from "../assets/icons/price-icon.svg";
 import phoneIcon from "../assets/icons/phone-icon.svg";
 import { FormAlert } from "./FormAlert";
+import ReactGA from "react-ga4";
+
+// Declare global types for TypeScript
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+  interface ImportMetaEnv {
+    readonly VITE_GA_MEASUREMENT_ID?: string;
+    [key: string]: string | boolean | undefined;
+  }
+}
+
+// Initialize GA4
+const trackingId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+if (trackingId) {
+  ReactGA.initialize(trackingId);
+}
+
+// Google Ads Conversion
+const gtag_report_conversion = (url?: string) => {
+  if (typeof window.gtag !== "undefined") {
+    const callback = () => {
+      if (url) window.location.href = url;
+    };
+    window.gtag("event", "conversion", {
+      send_to: "AW-16460421460/zvkSCLj3m6caENSy-Kg9",
+      value: 1.0,
+      currency: "INR",
+      event_callback: callback,
+    });
+  }
+};
 
 interface RightStickyModalProps {
   openModal: () => void;
@@ -19,6 +52,31 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
   const [loading, setLoading] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState("");
   const [submittedNumbers, setSubmittedNumbers] = useState<Set<string>>(new Set());
+  const [utmParams, setUtmParams] = useState({
+    utmSource: "",
+    utmMedium: "",
+    utmCampaign: "",
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const source = params.get("utmSource");
+    const medium = params.get("utmMedium");
+    const campaign = params.get("utmCampaign");
+
+    ReactGA.send({
+      hitType: "pageview",
+      utm_source: source,
+      utm_medium: medium,
+      utm_campaign: campaign,
+    });
+
+    setUtmParams({
+      utmSource: source || "",
+      utmMedium: medium || "",
+      utmCampaign: campaign || "",
+    });
+  }, []);
 
   const validateName = (value: string) => {
     if (!value.trim()) {
@@ -69,9 +127,9 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
       projectName: "assetz codename micropolis",
       currentAgent: "yasswanth@truestate.in",
       utmDetails: {
-        source: null,
-        medium: null,
-        campaign: null,
+        source: utmParams.utmSource || null,
+        medium: utmParams.utmMedium || null,
+        campaign: utmParams.utmCampaign || null,
       },
     };
 
@@ -88,6 +146,8 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
       const result = await response.json();
       console.log("Success:", result);
 
+      gtag_report_conversion();
+
       setSubmittedNumbers((prev) => new Set(prev.add(mobile)));
       setSubmissionStatus("We have successfully received your information. Expect to hear from us shortly!");
       setName("");
@@ -99,6 +159,7 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="hidden lg:flex fixed top-0 right-0 w-[280px] h-screen bg-white z-40 shadow-xl flex-col pb-4 justify-between">

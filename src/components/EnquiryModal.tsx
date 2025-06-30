@@ -4,23 +4,59 @@ import modalImage from "../assets/modal-image.svg";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { FormAlert } from "./FormAlert";
+import ReactGA from "react-ga4";
 
 interface EnquiryModalProps {
   isOpen: boolean;
   closeModal: () => void;
 }
 
+// Declare global gtag to avoid TS errors
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+  interface ImportMetaEnv {
+    readonly VITE_GA_MEASUREMENT_ID?: string;
+    // add other env variables here as needed
+    [key: string]: string | boolean | undefined;
+  }
+}
+
+const trackingId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+
+if (trackingId) {
+  ReactGA.initialize(trackingId);
+}
+
+const gtag_report_conversion = (url?: string) => {
+  if (typeof window !== "undefined" && typeof window.gtag === "function") {
+    const callback = () => {
+      if (url) window.location.href = url;
+    };
+    window.gtag("event", "conversion", {
+      send_to: "AW-16460421460/zvkSCLj3m6caENSy-Kg9",
+      value: 1.0,
+      currency: "INR",
+      event_callback: callback,
+    });
+  }
+};
+
 const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, closeModal }) => {
-  const [isMobile, setIsMobile] = useState(false);
-  const [name, setName] = useState("");
-  const [contactNumber, setContactNumber] = useState("");
-  const [nameError, setNameError] = useState("");
-  const [contactError, setContactError] = useState("");
-  const [submittedNumbers, setSubmittedNumbers] = useState<Set<string>>(
-    new Set()
-  );
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionStatus, setSubmissionStatus] = useState("");
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [name, setName] = useState<string>("");
+  const [contactNumber, setContactNumber] = useState<string>("");
+  const [nameError, setNameError] = useState<string>("");
+  const [contactError, setContactError] = useState<string>("");
+  const [submittedNumbers, setSubmittedNumbers] = useState<Set<string>>(new Set());
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [submissionStatus, setSubmissionStatus] = useState<string>("");
+  const [utmParams, setUtmParams] = useState({
+    utmSource: "",
+    utmMedium: "",
+    utmCampaign: "",
+  });
 
   useEffect(() => {
     const updateIsMobile = () => {
@@ -69,16 +105,13 @@ const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, closeModal }) => {
       return false;
     }
 
-    // Check if number was already submitted
     if (submittedNumbers.has(value)) {
       setContactError("This number has already been submitted.");
       return false;
     }
 
-    // Remove non-digit characters for length validation
     const digits = value.replace(/\D/g, "");
 
-    // Check for valid length (10 digits for IN, or general >= 10)
     if (digits.length < 10 || digits.length > 15) {
       setContactError("Please enter a valid phone number.");
       return false;
@@ -97,6 +130,30 @@ const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, closeModal }) => {
     setContactNumber(value || "");
     if (contactError) validateContactNumber(value || "");
   };
+
+  const getUTMParams = () => {
+    const params = new URLSearchParams(window.location.search);
+    const source = params.get("utmSource");
+    const medium = params.get("utmMedium");
+    const campaign = params.get("utmCampaign");
+
+    ReactGA.send({
+      hitType: "pageview",
+      utm_source: source,
+      utm_medium: medium,
+      utm_campaign: campaign,
+    });
+
+    return {
+      utmSource: source || "",
+      utmMedium: medium || "",
+      utmCampaign: campaign || "",
+    };
+  };
+
+  useEffect(() => {
+    setUtmParams(getUTMParams());
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,37 +174,32 @@ const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, closeModal }) => {
       projectName: "brigade plot malur",
       currentAgent: "yasswanth@truestate.in",
       utmDetails: {
-        source: null,
-        medium: null,
-        campaign: null,
+        source: utmParams.utmSource || null,
+        medium: utmParams.utmMedium || null,
+        campaign: utmParams.utmCampaign || null,
       },
     };
 
     try {
-      const response = await fetch(
-        "https://handlemultiplecampaigndata-66bpoanwxq-uc.a.run.app",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch("https://handlemultiplecampaigndata-66bpoanwxq-uc.a.run.app", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
       const result = await response.json();
       console.log("Form submitted successfully:", result);
 
-      setSubmittedNumbers((prev) => new Set(prev.add(contactNumber)));
-      setSubmissionStatus(
-        "We have successfully received your information. Expect to hear from us shortly!"
-      );
-      setIsSubmitting(false);
-      // handleCloseModal();
+      gtag_report_conversion();
+
+      setSubmittedNumbers((prev) => new Set(prev).add(contactNumber));
+      setSubmissionStatus("We have successfully received your information. Expect to hear from us shortly!");
     } catch (error) {
       console.error("Submission error:", error);
       setSubmissionStatus("Something went wrong. Please try again later.");
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -272,7 +324,7 @@ const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, closeModal }) => {
                   placeholder="Name*"
                   value={name}
                   onChange={(e) => handleNameChange(e.target.value)}
-                  className={`w-full px-4 py-2 border focus:outline-none focus:border-2 focus:ring-1 text-black text-base placeholder:text-gray-500 ${
+                  className={`w-full px-4 py-2 border focus:outline-none focus:ring-1 text-black text-base ${
                     nameError
                       ? "border-red-500 focus:ring-red-500"
                       : "border-gray-300 focus:ring-black focus:border-transparent"
