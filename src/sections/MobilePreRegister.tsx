@@ -1,39 +1,157 @@
+import { useState } from "react";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+import { FormAlert } from "../components/FormAlert";
+
 const MobilePreRegister = () => {
+  const [name, setName] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [contactError, setContactError] = useState("");
+  const [submittedNumbers, setSubmittedNumbers] = useState<Set<string>>(new Set());
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState("");
+
+  const validateName = (value: string) => {
+    if (!value.trim()) {
+      setNameError("Name is required");
+      return false;
+    }
+    if (value.trim().length < 2) {
+      setNameError("Name must be at least 2 characters");
+      return false;
+    }
+    if (!/^[a-zA-Z\s]+$/.test(value)) {
+      setNameError("Name should only contain letters and spaces");
+      return false;
+    }
+    setNameError("");
+    return true;
+  };
+
+  const validateContactNumber = (value: string) => {
+    if (!value) {
+      setContactError("Contact number is required");
+      return false;
+    }
+
+    if (submittedNumbers.has(value)) {
+      setContactError("This number has already been submitted.");
+      return false;
+    }
+
+    const digits = value.replace(/\D/g, "");
+    if (digits.length < 10 || digits.length > 15) {
+      setContactError("Please enter a valid phone number.");
+      return false;
+    }
+
+    setContactError("");
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    const isNameValid = validateName(name);
+    const isContactValid = validateContactNumber(contactNumber);
+
+    if (!isNameValid || !isContactValid || isSubmitting) return;
+
+    const payload = {
+      name: name.trim().toLowerCase(),
+      phonenumber: contactNumber,
+      campaign: true,
+      projectId: "vDJtBNSMTbRpndgM4GRf",
+      projectName: "assetz codename micropolis",
+      currentAgent: "yasswanth@truestate.in",
+      utmDetails: {
+        source: null,
+        medium: null,
+        campaign: null,
+      },
+    };
+
+    try {
+      setIsSubmitting(true);
+
+      const response = await fetch("https://handlemultiplecampaigndata-66bpoanwxq-uc.a.run.app", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      const result = await response.json();
+      console.log("Success:", result);
+
+      setSubmittedNumbers((prev) => new Set(prev.add(contactNumber)));
+      setSubmissionStatus("We received your info. Expect a response soon!");
+
+      setName("");
+      setContactNumber("");
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setSubmissionStatus("Something went wrong. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="block lg:hidden  py-6 bg-white rounded-lg mt-1">
-      {/* Heading */}
-      <h3 className="text-center text-lg  mb-2">
+    <div className="block lg:hidden py-6 bg-white rounded-lg mt-1">
+      <h3 className="text-center text-lg mb-2">
         Pre-Register here for Best Offers
       </h3>
       <div className="border-1 mb-8 border-[#CCCCCC]"></div>
 
-      {/* Input Fields */}
       <div className="flex flex-col space-y-3 px-[15%]">
         <input
           type="text"
           placeholder="Name"
-          className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none placeholder:text-black"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className={`border rounded px-3 py-2 text-sm focus:border-black focus:border-2 placeholder:text-gray-500 focus:outline-none ${
+            nameError ? "border-red-500" : "border-gray-300"
+          }`}
         />
-        <input
-          type="tel"
-          placeholder="+91 - Mobile No"
-          className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none placeholder:text-black"
+        {nameError && <p className="text-red-600 text-xs">{nameError}</p>}
+
+        <PhoneInput
+          international
+          defaultCountry="IN"
+          value={contactNumber}
+          onChange={(value) => setContactNumber(value || "")}
+          className={`input-phone-number border rounded px-3 py-2 text-sm focus:outline-none placeholder:text-black ${
+            contactError ? "border-red-500" : "border-gray-300"
+          }`}
         />
+        {contactError && <p className="text-red-600 text-xs">{contactError}</p>}
       </div>
 
-      {/* Button */}
       <div className="mt-4 flex justify-start px-[15%]">
-        <button className="bg-[#26650B] text-white text-sm py-2 px-5 rounded shadow-md transition-transform duration-300 hover:scale-105">
-          Pre-Register Now
+        <button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className={`bg-[#26650B] text-white text-sm py-2 px-5 rounded shadow-md transition-transform duration-300 ${
+            isSubmitting ? "opacity-60 cursor-not-allowed" : "hover:scale-105"
+          }`}
+        >
+          {isSubmitting ? "Submitting..." : "Pre-Register Now"}
         </button>
       </div>
 
-      {/* Disclaimer */}
       <p className="text-[10px] text-gray-600 leading-snug mt-4 px-[15%]">
         I authorize company representatives to Call, SMS, Email or WhatsApp
         me about its products and offers. This consent overrides any
         registration for DNC/NDNC.
       </p>
+
+      {submissionStatus && (
+        <FormAlert
+          message={submissionStatus}
+          onClose={() => setSubmissionStatus("")}
+        />
+      )}
     </div>
   );
 };

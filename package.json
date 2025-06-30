@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.11",
+    "iconoir-react": "^7.11.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-phone-number-input": "^3.4.12",
     "swiper": "^11.2.8",
     "tailwindcss": "^4.1.11"
   },

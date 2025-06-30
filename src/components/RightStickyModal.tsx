@@ -1,8 +1,11 @@
 import { useState } from "react";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import callIcon from "../assets/icons/call-icon.svg";
 import visitIcon from "../assets/icons/visit-icon.svg";
 import priceIcon from "../assets/icons/price-icon.svg";
 import phoneIcon from "../assets/icons/phone-icon.svg";
+import { FormAlert } from "./FormAlert";
 
 interface RightStickyModalProps {
   openModal: () => void;
@@ -14,29 +17,53 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
   const [nameError, setNameError] = useState("");
   const [mobileError, setMobileError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState("");
+  const [submittedNumbers, setSubmittedNumbers] = useState<Set<string>>(new Set());
+
+  const validateName = (value: string) => {
+    if (!value.trim()) {
+      setNameError("Name is required");
+      return false;
+    }
+    if (value.trim().length < 2) {
+      setNameError("Name must be at least 2 characters");
+      return false;
+    }
+    if (!/^[a-zA-Z\s]+$/.test(value)) {
+      setNameError("Name should only contain letters and spaces");
+      return false;
+    }
+    setNameError("");
+    return true;
+  };
+
+  const validateContactNumber = (value: string) => {
+    if (!value) {
+      setMobileError("Contact number is required");
+      return false;
+    }
+    if (submittedNumbers.has(value)) {
+      setMobileError("This number has already been submitted.");
+      return false;
+    }
+    const digits = value.replace(/\D/g, "");
+    if (digits.length < 10 || digits.length > 15) {
+      setMobileError("Please enter a valid phone number.");
+      return false;
+    }
+    setMobileError("");
+    return true;
+  };
 
   const handleSubmit = async () => {
-    let hasError = false;
+    const isNameValid = validateName(name);
+    const isContactValid = validateContactNumber(mobile);
 
-    if (!name.trim()) {
-      setNameError("Please enter your name.");
-      hasError = true;
-    } else {
-      setNameError("");
-    }
-
-    if (mobile.length !== 10) {
-      setMobileError("Enter a valid 10-digit mobile number.");
-      hasError = true;
-    } else {
-      setMobileError("");
-    }
-
-    if (hasError || loading) return;
+    if (!isNameValid || !isContactValid || loading) return;
 
     const payload = {
       name: name.trim().toLowerCase(),
-      phonenumber: `+91${mobile}`,
+      phonenumber: mobile,
       campaign: true,
       projectId: "vDJtBNSMTbRpndgM4GRf",
       projectName: "assetz codename micropolis",
@@ -50,7 +77,6 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
 
     try {
       setLoading(true);
-
       const response = await fetch("https://handlemultiplecampaigndata-66bpoanwxq-uc.a.run.app", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -62,13 +88,13 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
       const result = await response.json();
       console.log("Success:", result);
 
-      alert("We received your info. Expect a response soon!");
-
+      setSubmittedNumbers((prev) => new Set(prev.add(mobile)));
+      setSubmissionStatus("We have successfully received your information. Expect to hear from us shortly!");
       setName("");
       setMobile("");
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("Something went wrong. Please try again later.");
+      setSubmissionStatus("Something went wrong. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -84,7 +110,7 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
           </div>
           <div className="w-1/2 flex items-center justify-center border-l border-white">
             <img src={phoneIcon} alt="call" className="w-3 h-3 mr-1" />
-            <a href="tel:+918919456501" className="hover:underline">
+            <a href="tel:+918919456501" >
               +91-8919456501
             </a>
           </div>
@@ -94,42 +120,31 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
         <div className="flex flex-col mt-6 space-y-3 px-4">
           <h3 className="font-bold text-base">Pre-Register here for Best Offers</h3>
 
-          {/* Name Field */}
           <div>
             <input
               type="text"
               placeholder="Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none placeholder:text-gray-800 mt-3"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none placeholder:text-gray-500 mt-3 focus:border-black focus:border-2"
             />
             {nameError && <p className="text-red-600 text-xs mt-1">{nameError}</p>}
           </div>
 
-          {/* Mobile Field */}
-          <div>
-            <div className="flex items-center border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black overflow-hidden mt-3">
-              <span className="px-3 text-sm text-gray-700 border-r border-gray-300">
-                +91
-              </span>
-              <input
-                type="tel"
-                value={mobile}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (/^\d{0,10}$/.test(value)) {
-                    setMobile(value);
-                  }
-                }}
-                maxLength={10}
-                placeholder="Mobile No"
-                className="w-full px-3 py-2 text-sm focus:outline-none placeholder:text-gray-800"
-              />
-            </div>
+          <div className="mt-3">
+            <PhoneInput
+              international
+              defaultCountry="IN"
+              value={mobile}
+              onChange={(value) => setMobile(value || "")}
+              className={`w-full px-4 py-2 text-sm rounded-md input-phone-number border ${
+                mobileError ? "border-red-500" : "border-gray-300"
+              }`}
+              required
+            />
             {mobileError && <p className="text-red-600 text-xs mt-1">{mobileError}</p>}
           </div>
 
-          {/* Submit Button */}
           <button
             onClick={handleSubmit}
             disabled={loading}
@@ -140,14 +155,12 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
             {loading ? "Submitting..." : "Pre-Register Now"}
           </button>
 
-          {/* Consent */}
           <p className="text-[10px] text-gray-600 leading-snug mt-4">
             I authorize company representatives to Call, SMS, Email or WhatsApp
             me about its products and offers. This consent overrides any
             registration for DNC/NDNC.
           </p>
 
-          {/* Icons */}
           <div className="flex justify-between items-start pt-3 text-xs text-center mt-3">
             <div className="flex flex-col items-center w-1/3 min-h-[60px]">
               <img src={callIcon} alt="Call Back" className="w-8 h-8 mb-1" />
@@ -173,7 +186,6 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
         </div>
       </div>
 
-      {/* Bottom Button */}
       <div className="w-full pt-3 flex justify-center">
         <button
           className="bg-[#26650B] text-white text-sm py-2 px-4 rounded shadow-md transition-transform duration-300 hover:scale-105 cursor-pointer"
@@ -182,6 +194,10 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
           Request Call Back
         </button>
       </div>
+
+      {submissionStatus && (
+        <FormAlert message={submissionStatus} onClose={() => setSubmissionStatus("")} />
+      )}
     </div>
   );
 };

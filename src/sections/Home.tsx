@@ -8,7 +8,7 @@ interface HomeProps {
 const Home = ({ openModal }: HomeProps) => {
   return (
     <>
-      <div className="relative w-full overflow-x-hidden">
+      <div className="relative w-full overflow-x-hidden md:mt-[69px]">
         {/* Image */}
         <img
           src={homeImg}
