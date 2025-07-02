@@ -55,10 +55,10 @@ const HomeInfo = ({ openModal }: HomeProps) => {
             </div>
           </div>
 
-          <a href="tel:+918919456501" className="block">
+          <a href="tel:+918123130034" className="block">
             <div className="bg-[#26650B] text-white font-medium text-[15px] mb-2 p-1.5">
               <div className="border-2 border-dashed border-white px-3 py-2.5 rounded">
-                +91-8919456501
+                +91-8123130034
               </div>
             </div>
           </a>

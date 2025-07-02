@@ -170,8 +170,8 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
           </div>
           <div className="w-1/2 flex items-center justify-center border-l border-white">
             <img src={phoneIcon} alt="call" className="w-3 h-3 mr-1" />
-            <a href="tel:+918919456501" >
-              +91-8919456501
+            <a href="tel:+918123130034" >
+              +91-8123130034
             </a>
           </div>
         </div>
