@@ -10,7 +10,7 @@ const pricingData = [
 
 const AreaPricing = ({ openModal }: AreaPricingProps) => {
   return (
-    <section id="floorplan" className="px-6 py-6 bg-white mt-5">
+    <section id="pricingAndFloorPlan" className="px-6 py-6 bg-white mt-5">
       {/* Title */}
       <h2 className="text-xl md:text-2xl md:py-4 font-semibold text-[#26650B] mb-5 text-center">
         Area & Pricing
