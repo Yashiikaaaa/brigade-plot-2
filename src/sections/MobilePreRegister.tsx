@@ -118,8 +118,8 @@ const MobilePreRegister = () => {
       name: name.trim().toLowerCase(),
       phonenumber: contactNumber,
       campaign: true,
-      projectId: "vDJtBNSMTbRpndgM4GRf",
-      projectName: "assetz codename micropolis",
+      projectId: "P031-A1",
+      projectName: "brigade plot malur",
       currentAgent: "yasswanth@truestate.in",
       utmDetails: {
         source: utmParams.utmSource || null,

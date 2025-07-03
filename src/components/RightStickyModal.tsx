@@ -122,8 +122,8 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
       name: name.trim().toLowerCase(),
       phonenumber: mobile,
       campaign: true,
-      projectId: "vDJtBNSMTbRpndgM4GRf",
-      projectName: "assetz codename micropolis",
+      projectId: "P031-A1",
+      projectName: "brigade plot malur",
       currentAgent: "yasswanth@truestate.in",
       utmDetails: {
         source: utmParams.utmSource || null,
