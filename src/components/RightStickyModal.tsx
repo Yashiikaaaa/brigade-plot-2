@@ -134,7 +134,7 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
 
     try {
       setLoading(true);
-      const response = await fetch("https://handlemultiplecampaigndata-66bpoanwxq-uc.a.run.app", {
+      const response = await fetch("https://googleleadsserver.onrender.com/handleMultipleCampaignData", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
