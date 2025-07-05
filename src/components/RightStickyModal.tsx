@@ -120,7 +120,7 @@ const RightStickyModal = ({ openModal }: RightStickyModalProps) => {
 
     const payload = {
       name: name.trim().toLowerCase(),
-      phonenumber: mobile,
+      phoneNumber: mobile,
       campaign: true,
       projectId: "P031-A1",
       projectName: "brigade plot malur",
